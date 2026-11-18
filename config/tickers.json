@@ -1,0 +1,42 @@
+{
+  "stocks": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "aliases": [
+        "Apple Inc"
+      ]
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "aliases": [
+        "Microsoft Corp"
+      ]
+    },
+    {
+      "ticker": "NVDA",
+      "name": "Nvidia",
+      "aliases": [
+        "Nvidia Corp"
+      ],
+      "include_keywords": {
+        "Jensen Huang": 2,
+        "Blackwell": 2
+      }
+    }
+  ],
+  "feed": {
+    "url_template": "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en",
+    "query_template": "{name} stock when:{lookback}",
+    "max_items_per_ticker": 50,
+    "timeout_seconds": 15,
+    "delay_between_requests_seconds": 3,
+    "lookback": "1h"
+  },
+  "template": "templates/default.json",
+  "output_dir": "outputs",
+  "schedule": {
+    "interval_seconds": 3600
+  }
+}

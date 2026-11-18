@@ -1,0 +1,6 @@
+outputs/
+outputs-test/
+backup-*/
+__pycache__/
+*.pyc
+.DS_Store

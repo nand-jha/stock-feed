@@ -1,0 +1,213 @@
+{
+  "stocks": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft"
+    },
+    {
+      "ticker": "NVDA",
+      "name": "Nvidia"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon"
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet"
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "Tesla"
+    },
+    {
+      "ticker": "BRK.B",
+      "name": "Berkshire Hathaway"
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan"
+    },
+    {
+      "ticker": "V",
+      "name": "Visa"
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson"
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart"
+    },
+    {
+      "ticker": "MA",
+      "name": "Mastercard"
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble"
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth"
+    },
+    {
+      "ticker": "HD",
+      "name": "Home Depot"
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil"
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America"
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola"
+    },
+    {
+      "ticker": "PFE",
+      "name": "Pfizer"
+    },
+    {
+      "ticker": "DIS",
+      "name": "Disney"
+    },
+    {
+      "ticker": "CSCO",
+      "name": "Cisco"
+    },
+    {
+      "ticker": "INTC",
+      "name": "Intel"
+    },
+    {
+      "ticker": "AMD",
+      "name": "AMD"
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "Oracle"
+    },
+    {
+      "ticker": "CRM",
+      "name": "Salesforce"
+    },
+    {
+      "ticker": "ADBE",
+      "name": "Adobe"
+    },
+    {
+      "ticker": "COST",
+      "name": "Costco"
+    },
+    {
+      "ticker": "PEP",
+      "name": "PepsiCo"
+    },
+    {
+      "ticker": "T",
+      "name": "AT&T"
+    },
+    {
+      "ticker": "MRK",
+      "name": "Merck"
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie"
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron"
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo"
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs"
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley"
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM"
+    },
+    {
+      "ticker": "QCOM",
+      "name": "Qualcomm"
+    },
+    {
+      "ticker": "TXN",
+      "name": "Texas Instruments"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom"
+    },
+    {
+      "ticker": "UBER",
+      "name": "Uber"
+    },
+    {
+      "ticker": "SHOP",
+      "name": "Shopify"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "Palantir"
+    },
+    {
+      "ticker": "SNOW",
+      "name": "Snowflake"
+    },
+    {
+      "ticker": "COIN",
+      "name": "Coinbase"
+    },
+    {
+      "ticker": "BA",
+      "name": "Boeing"
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar"
+    },
+    {
+      "ticker": "GE",
+      "name": "General Electric"
+    }
+  ],
+  "feed": {
+    "url_template": "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en",
+    "query_template": "{name} stock when:{lookback}",
+    "max_items_per_ticker": 50,
+    "timeout_seconds": 15,
+    "delay_between_requests_seconds": 3,
+    "lookback": "1h"
+  },
+  "template": "templates/default.json",
+  "output_dir": "outputs-test",
+  "schedule": {
+    "interval_seconds": 3600
+  }
+}
