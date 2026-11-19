@@ -9,6 +9,7 @@ Pulls Google News RSS for a list of stocks, applies per-stock rules, and writes 
 - `outputs/feed-<day>.jsonl` — kept items. These are also the dedupe state, re-read each cycle.
 - `outputs/rejects-<day>.jsonl` — dropped items with `reject_reason`. Each (ticker, title, reason) is logged once.
 - `outputs/messages/<day>/<TICKER>.md` — one Teams-ready Markdown message per company, rebuilt each cycle.
+- `outputs/state.json` — start time of the last fully successful cycle. Sets the next fetch window.
 
 ## Message format (`publish` in the template)
 - `header`, `item`, `empty`, `more`: text templates for each message.
@@ -36,7 +37,11 @@ Rejected items aren't remembered, so they are re-checked each cycle. A template 
 Known limit: a phrase like "led by Nvidia" can also be dropped, because "by" is treated as the analyst-firm marker. Set `reject_analyst_firm_mentions` to `false` to turn the rule off.
 
 ## Lookback and rate limits
-- `feed.lookback` is `1h`, matching the default `schedule.interval_seconds` of `3600`. Google's `when:` operator returned no results for `15m`, so `1h` is the shortest window tested.
+- The window follows the time since the last successful cycle, so a late or missed cycle does not leave a gap. Each cycle's window is `ceil(time since last cycle + overlap_hours)`, capped at `max_lookback_hours` (default 24). `overlap_hours` defaults to 0. With a 1h interval the window is `1h`, and with a 5-minute interval it is also `1h`, because Google returns nothing for `5m`, `15m`, or `30m` (tested). Repeats across cycles are removed by dedupe.
+- With no `outputs/state.json` yet (first run, or after deleting it), `feed.lookback` (`1h`) is used.
+- Google's `when:` operator returned no results for `15m`, so the window is never shorter than one hour.
+- The cursor only advances when every stock fetched successfully. If a stock fails, the next cycle's window covers the gap.
+- Dry runs do not update the cursor.
 - `feed.delay_between_requests_seconds` (default 3) spaces requests. Google returns HTTP 429 if requests come too fast. A failed stock is logged as a warning and skipped for that cycle.
 - A 49-stock cycle takes roughly 2.5 minutes at the 3-second delay (timing not yet measured). For a load test, copy `config/tickers.json`, change the stock list and `output_dir`, then pass it with `--config`.
 

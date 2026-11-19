@@ -12,6 +12,8 @@ Rules, first failing one rejects the item (reason is logged):
   4. require_ticker_in_title: company name, alias, or ticker in the title
   5. include_keywords score below min_score
 
+The fetch window follows the time since the last successful cycle (outputs/state.json), plus an
+overlap margin, so a late or missed cycle does not leave a gap. Overlap is removed by dedupe.
 Kept items in outputs/feed-<day>.jsonl are the only dedupe state. Rejected items are not
 remembered, so every cycle re-checks them and template changes apply to recent news.
 Stdlib only, Python 3.9+.
@@ -21,6 +23,7 @@ import datetime as dt
 import email.utils
 import html
 import json
+import math
 import os
 import re
 import sys
@@ -79,10 +82,9 @@ def validate(cfg):
 
 # ---------- feed ----------
 
-def fetch(cfg, stock):
+def fetch(cfg, stock, lookback):
     feed = cfg["feed"]
-    query = feed["query_template"].format(name=stock["name"], ticker=stock["ticker"],
-                                          lookback=feed.get("lookback", "1h"))
+    query = feed["query_template"].format(name=stock["name"], ticker=stock["ticker"], lookback=lookback)
     url = feed["url_template"].format(query=urllib.parse.quote_plus(query))
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=feed.get("timeout_seconds", 15)) as resp:
@@ -200,6 +202,19 @@ class Store:
     def reject_keys(self):
         return {(r["ticker"], r["title"], r["reject_reason"]) for r in self._rows("rejects")}
 
+    def last_fetch(self):
+        """Start time of the last fully successful cycle, or None."""
+        try:
+            with open(os.path.join(self.dir, "state.json"), encoding="utf-8") as f:
+                return dt.datetime.fromisoformat(json.load(f)["last_fetch"])
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+
+    def save_last_fetch(self, when):
+        os.makedirs(self.dir, exist_ok=True)
+        with open(os.path.join(self.dir, "state.json"), "w", encoding="utf-8") as f:
+            json.dump({"last_fetch": when.isoformat()}, f)
+
     def append(self, name, rows):
         if not rows:
             return
@@ -238,19 +253,36 @@ class Store:
 
 # ---------- cycle ----------
 
+def plan_lookback(cfg, store, now):
+    """Window for this cycle: time since the last fetch plus overlap, whole hours, capped.
+    Falls back to feed.lookback when there is no state yet."""
+    feed = cfg["feed"]
+    last = store.last_fetch()
+    if last is None:
+        return feed.get("lookback", "1h")
+    gap_h = (now - last).total_seconds() / 3600 + feed.get("overlap_hours", 1)
+    hours = min(max(1, math.ceil(gap_h)), feed.get("max_lookback_hours", 24))
+    return f"{hours}h"
+
+
 def run_cycle(cfg, rules, fields, store, publish, dry_run=False):
     """One fetch+filter pass over all stocks. Returns the newly kept rows."""
+    now = dt.datetime.now(dt.timezone.utc)
+    lookback = plan_lookback(cfg, store, now)
+    print(f"  window: when:{lookback}")
     kept_keys = set() if dry_run else store.kept_keys()
     logged = set() if dry_run else store.reject_keys()
     kept, rejects = [], []
+    failed = False
 
     for i, stock in enumerate(cfg["stocks"]):
         if i:  # space requests out to stay under Google's rate limit
             time.sleep(cfg["feed"].get("delay_between_requests_seconds", 3))
         try:
-            items = parse_items(fetch(cfg, stock), stock, cfg["feed"].get("max_items_per_ticker", 50))
+            items = parse_items(fetch(cfg, stock, lookback), stock, cfg["feed"].get("max_items_per_ticker", 50))
         except Exception as exc:  # one failing stock shouldn't stop the cycle
             print(f"  [warn] {stock['ticker']}: fetch failed: {exc}", file=sys.stderr)
+            failed = True
             continue
 
         new = 0
@@ -278,6 +310,8 @@ def run_cycle(cfg, rules, fields, store, publish, dry_run=False):
     store.append("feed", kept)
     store.append("rejects", rejects)
     store.write_messages(cfg["stocks"], publish)
+    if not failed:  # a failed stock keeps the old cursor, so its gap is covered next cycle
+        store.save_last_fetch(now)
     return kept
 
 

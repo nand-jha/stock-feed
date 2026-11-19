@@ -32,7 +32,9 @@
     "max_items_per_ticker": 50,
     "timeout_seconds": 15,
     "delay_between_requests_seconds": 3,
-    "lookback": "1h"
+    "lookback": "1h",
+    "overlap_hours": 0,
+    "max_lookback_hours": 24
   },
   "template": "templates/default.json",
   "output_dir": "outputs",
